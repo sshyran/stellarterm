@@ -129,6 +129,9 @@ export default class AssetCardHelper extends React.Component {
             color = this.state.loadedAssetData.color || color;
         }
 
+        if (color === '#ffffff') {
+            color = '#000000';
+        }
         return ({
             asset,
             logo,

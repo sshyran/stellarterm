@@ -71,8 +71,16 @@
             .tradeLink {
                 border-bottom: 1px dotted $s-color-neutral5;
             }
+            &.price-xlm{
+                min-width: 180px;
+            }
         }
     }
+}
+
+.AssetList_load{
+    display: block;
+    padding-left: 8px;
 }
 
 .AssetListFooter {
@@ -88,17 +96,31 @@
 }
 
 .AssetList_Header {
-    padding: 12px 18px;
+    padding: 0 18px;
     border-bottom: 1px solid $s-color-neutral8;
 
     display: flex;
     justify-content: space-between;
+    align-items: center;
 
-    .ListHeader_Title {
-        font-size: 18px;
-        font-weight: normal;
+    .AssetList_Tabs {
+        display: flex;
+        flex-direction: row;
+
+        .ListHeader_Title {
+            font-size: 18px;
+            font-weight: normal;
+            margin-right: 35px;
+            padding: 12px 0;
+            color: #828688;
+            cursor: pointer;
+
+            &.active {
+                color: #505558;
+                border-bottom: 2px solid #86d38c;
+            }
+        }
     }
-
     .ListHeader_lowTradable {
         display: flex;
         align-items: center;
