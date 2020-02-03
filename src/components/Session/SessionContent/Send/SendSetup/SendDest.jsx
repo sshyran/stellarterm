@@ -1,10 +1,28 @@
 import React from 'react';
+import _ from 'lodash';
 import PropTypes from 'prop-types';
 import createStellarIdenticon from 'stellar-identicon-js';
 import Driver from '../../../../../lib/Driver';
 import Validate from '../../../../../lib/Validate';
 
 export default class SendDest extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            errorMsg: this.getErrorMessage(),
+        };
+
+        this.delayedCallback = _.debounce(() => {
+            this.setState({ errorMsg: this.getErrorMessage() });
+        }, 500);
+    }
+
+    onChangeDestination(e) {
+        e.persist();
+        this.delayedCallback();
+        this.props.d.send.updateDestination(e.target.value);
+    }
+
     getErrorMessage() {
         const { federationNotFound, destInput, accountId } = this.props.d.send;
         const isDestFederation = Validate.address(destInput).ready;
@@ -49,8 +67,9 @@ export default class SendDest extends React.Component {
     }
 
     render() {
-        const { destInput, updateDestination } = this.props.d.send;
-        const errorMsg = this.getErrorMessage();
+        const { destInput } = this.props.d.send;
+        const { errorMsg } = this.state;
+
         const inputNotice = this.getInputNotice();
 
         return (
@@ -60,8 +79,10 @@ export default class SendDest extends React.Component {
 
                 <input
                     autoFocus
+                    spellCheck={false}
                     value={destInput}
-                    onChange={e => updateDestination(e.target.value)}
+                    onChange={e => this.onChangeDestination(e)}
+                    onBlur={() => this.setState({ errorMsg: this.getErrorMessage() })}
                     maxLength="56"
                     type="text"
                     name="recipient"

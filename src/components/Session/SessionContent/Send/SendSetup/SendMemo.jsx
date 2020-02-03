@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'lodash';
 import PropTypes from 'prop-types';
 import Driver from '../../../../../lib/Driver';
 import Validate from '../../../../../lib/Validate';
@@ -18,6 +19,7 @@ export default class SendMemo extends React.Component {
 
         this.state = {
             isOpenList: false,
+            memoNotice: this.getMemoNotice(),
             selectedType: this.props.d.send.memoType,
         };
 
@@ -25,8 +27,11 @@ export default class SendMemo extends React.Component {
             if (this.node.contains(e.target)) { return; }
             this.setState({ isOpenList: false });
         };
-    }
 
+        this.delayedCallback = _.debounce(() => {
+            this.setState({ memoNotice: this.getMemoNotice() });
+        }, 500);
+    }
 
     componentDidMount() {
         document.addEventListener('mousedown', this.handleClickOutside, false);
@@ -44,9 +49,17 @@ export default class SendMemo extends React.Component {
             selectedType: memoType || this.state.selectedType,
         });
 
+        this.delayedCallback();
+
         if (memoType) {
             updateMemoType(memoType);
         }
+    }
+
+    onChangeMemo(e) {
+        e.persist();
+        this.delayedCallback();
+        this.props.d.send.updateMemoContent(e);
     }
 
     getMemoDropdown() {
@@ -90,7 +103,7 @@ export default class SendMemo extends React.Component {
     }
 
     getMemoInput() {
-        const { updateMemoContent, memoType, memoContent, memoContentLocked } = this.props.d.send;
+        const { memoType, memoContent, memoContentLocked } = this.props.d.send;
         let memoPlaceholder;
 
         switch (memoType) {
@@ -120,24 +133,30 @@ export default class SendMemo extends React.Component {
                 <input
                     name="memo"
                     type="text"
+                    spellCheck={false}
                     value={memoContent}
                     disabled={memoContentLocked || isMemoDisabled}
-                    onChange={updateMemoContent}
+                    onChange={e => this.onChangeMemo(e)}
                     placeholder={memoPlaceholder} />
             </React.Fragment>
         );
     }
 
-    render() {
+    getMemoNotice() {
         const { d } = this.props;
-        const { memoRequired, memoType, memoContent, memoContentLocked } = d.send;
-
-        let memoValidationMessage;
+        const { memoType, memoContent } = d.send;
 
         if (memoType !== 'none') {
             const memoV = Validate.memo(memoContent, memoType);
-            memoValidationMessage = memoV.message ? memoV.message : null;
+            return memoV.message ? memoV.message : null;
         }
+        return null;
+    }
+
+    render() {
+        const { d } = this.props;
+        const { memoNotice } = this.state;
+        const { memoRequired, memoType, memoContentLocked } = d.send;
 
         const isDisabledInput = memoType === 'none' || memoContentLocked;
         const memoInputClass = `Send_input_block ${isDisabledInput ? 'disabled_block' : ''}`;
@@ -146,11 +165,11 @@ export default class SendMemo extends React.Component {
         return (
             <div className="Input_flexed_block">
                 <div className={memoInputClass}>
-                    {memoValidationMessage ? <div className="invalidValue_popup">Memo is not valid</div> : null}
+                    {memoNotice ? <div className="invalidValue_popup">Memo is not valid</div> : null}
                     {this.getMemoInput()}
 
                     <div className="field_description">
-                        {memoValidationMessage}
+                        {this.getMemoNotice()}
                     </div>
                 </div>
 
